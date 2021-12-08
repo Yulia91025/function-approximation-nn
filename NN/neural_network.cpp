@@ -17,17 +17,12 @@ struct DATA
 	double** input_values; // массив указателей на массивы с входными данными
 	double** answers; // массив с указателями на массивы с известными результатами переменных, которые в дальнейшем надо будет угадать
 	int max_d = 1; // указатель на массив с максимальной разрядностью эксперимента
-	DATA()
+	DATA(ifstream& file)
 	{
-		cout << "Enter the number of variables with known values: " << endl;
-		cin >> num_in_neurons; // считываем количество "известных" значений 
+		file >> num_in_neurons; // считываем количество "известных" значений 
 		++num_in_neurons; //увеличиваем на 1 количество входных нейронов, чтобы был один нейрон смещения
-
-		cout << "Enter the number of variables with unknown values: " << endl;
-		cin >> num_out_neurons; // считываем количество переменных, которые надо будет считать 
-
-		cout << "Enter the number of experiments: " << endl;
-		cin >> num_of_experiments; // считываем количество экспериментов, которые были проведены (т.е. в которых все значения известны)
+		file >> num_out_neurons; // считываем количество переменных, которые надо будет считать 
+		file >> num_of_experiments; // считываем количество экспериментов, которые были проведены (т.е. в которых все значения известны)
 
 		input_values = new double* [num_of_experiments];
 		answers = new double* [num_of_experiments];
@@ -37,16 +32,14 @@ struct DATA
 			answers[n] = new double[num_out_neurons];
 			for (int i = 0; i < num_in_neurons - 1; ++i) // считываем входные значения
 			{
-				cout << "Enter " << i + 1 << " value:" << endl;
-				cin >> input_values[n][i];
+				file >> input_values[n][i];
 				int d = dig(input_values[n][i]);
 				if (max_d < d) max_d = d; // если разрядность i-ого входного значения больше максимальной разрядности, меняем макс разрядность 
 			}
 			input_values[n][num_in_neurons - 1] = 1; // задаём значение для нейрона смещения
 			for (int i = 0; i < num_out_neurons; ++i) // считываем ответы, которые необходимо получить 
 			{
-				cout << "Enter answer: " << endl;
-				cin >> answers[n][i];
+				file >> answers[n][i];
 				int d = dig(answers[n][i]);
 				if (max_d < d) max_d = d; // если разрядность i-ого ответа больше максимальной разрядности, меняем макс разрядность 
 			}
