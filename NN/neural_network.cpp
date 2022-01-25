@@ -1,11 +1,15 @@
 #include <iostream>
 #include <vector>
 #include <time.h>
-#include "timer.cpp"
 #include "neurons.cpp"
+#include "timer.cpp"
+#include <fstream>
 using namespace std;
 
 // static здесь - это костыль для раздельной компиляции 
+
+static string output_file = "results.txt"; // имя файла, в который выводим результаты 
+
 static int num_in_neurons = 2; // количество входных нейронов
 static int num_hid_neurons = 2; // количество скрытых нейронов
 static int num_out_neurons = 1; // количество выходных нейронов
@@ -19,6 +23,8 @@ struct DATA
 	int max_d = 1; // указатель на массив с максимальной разрядностью эксперимента
 	DATA(ifstream& file)
 	{
+		cout << "Enter accuracy" << endl;
+		cin >> accuracy;
 		file >> num_in_neurons; // считываем количество "известных" значений 
 		++num_in_neurons; //увеличиваем на 1 количество входных нейронов, чтобы был один нейрон смещения
 		file >> num_out_neurons; // считываем количество переменных, которые надо будет считать 
@@ -46,7 +52,7 @@ struct DATA
 		}
 		corr_val();
 		num_hid_neurons = 2 * num_in_neurons; // задаём количетво нейронов скрытого слоя в 2 раза больше нейронов входного слоя
-		cout << "MAX D " << max_d << endl;
+		//cout << "MAX D " << max_d << endl;
 	}
 	int dig(double num) // возвращает 10 в степени разряда числа num
 	{
@@ -65,15 +71,13 @@ struct DATA
 		{
 			for (int i = 0; i < num_in_neurons; ++i)
 			{                                         //
-				input_values[n][i] /= max_d;
-				cout << "Input value " << input_values[n][i] << endl;// 
+				input_values[n][i] /= max_d;          // 
 			}                                         //        делаем все значения не больше 1
 			for (int i = 0; i < num_out_neurons; ++i) //  (т.к. функция активации принимает значения от 0 до 1)
 			{                                         // 
-				answers[n][i] /= max_d;
-				cout << "Answer " << answers[n][i] << endl;//
+				answers[n][i] /= max_d;               //
 			}
-		}
+		} 
 	}
 	double res(int n, double output_value) // выводит в исходной разрядности результат n-ого эксперимента
 	{
@@ -97,22 +101,20 @@ class Neural_network
 public:
 	Neural_network(DATA data)
 	{
+		ofstream fout(output_file, ofstream::app); //вывод в файл
+		Timer t; //заводим счётчик времени
 		int num_of_synapses = num_in_neurons * num_hid_neurons + num_hid_neurons * num_out_neurons; // количество синапсов
 		double* val_synapses = new double[num_of_synapses]; // массив синапсов
-		for (int i = 0; i < num_of_synapses; ++i) // задаём начальные значения синапсов рандомно
+		cout << "Do you already have synapses values?" << endl;
+		string ans_1 = "";
+		cin >> ans_1;
+		if (ans_1 == "Yes" || ans_1 == "YES" || ans_1 == "yes") import_syn(val_synapses);
+		else for (int i = 0; i < num_of_synapses; ++i) // задаём начальные значения синапсов рандомно
 		{
 			val_synapses[i] = (double)(rand() % 1000 + 1) * (rand() % 10 - 5) / 10000;
-			cout << val_synapses[i] << endl;
 		}
-		srand(time(NULL));
-		E = (double)(rand() % 100) / 100;
-		A = (double)(rand() % 50) / 100;
-		cout << E << A << endl;
-
-		for (int n = 0; n < num_of_experiments; ++n)
-		{
-			Error[n] = 0; // зануляем значения ошибок
-		}
+		cout << "E = "<< E << ";  A = "<< A << endl;
+		fout << "E = " << E << ";  A = " << A << endl;
 
 		for (int i = 0; i < num_out_neurons; ++i) // присваиваем идеальным значениям значения первого набора ответов
 		{
@@ -139,17 +141,32 @@ public:
 		for (int i = 0; i < num_out_neurons; ++i)
 		{
 			out_neu_init(i); // инициализируем i-й нейрон выходного слоя
-			cout << "Result " << i + 1 << " output neuron: " << Output_Neurons[i].output << endl;
 		}
-		error_rate(); // вычисляем ошибку
+		for (int n = 0; n < num_of_experiments; ++n)
+		{
+			Error[n] = 0; // зануляем значения ошибок
+			curr_experiment = n;
+			error_rate(); // вычисляем ошибку для текущего эксперимента 
+			change_input_values(data.input_values[(n + 1) % num_of_experiments], data.answers[((n + 1) % num_of_experiments)]); // меняем экмперимент 
+		}
 		cout << "-------------------------------------------------------------------------------------" << endl;
 		backpropagation(data); // запускаем метод обратного распространения ошибки
-		for (int n = 0; n < num_out_neurons; ++n)
+		cout << "Neural network worked for " << t.elapsed() << " seconds" << endl;
+		fout << "Neural network worked for " << t.elapsed() << " seconds" << endl;
+		fout << "-------------------------------------------------------------------------------------" << endl;
+		bool flag = 1;
+		while (flag)
 		{
-			cout << "Ideal " << n + 1 << " " << Ideal[n] * data.max_d << endl;
-			cout << "Result " << n + 1 << " output neuron: " << Output_Neurons[n].output * data.max_d << endl;
+			guess(data.max_d);
+			cout << "Do you want to finish?" << endl;
+			string ans = "";
+			cin >> ans;
+			if (ans == "Yes" || ans == "YES" || ans == "yes") flag = 0;
 		}
-		guess(data.max_d);
+		cout << "Do you want to save synapses values?" << endl;
+		string ans_2 = "";
+		cin >> ans_2;
+		if (ans_2 == "Yes" || ans_2 == "YES" || ans_2 == "yes") save_syn();
 	}
 	void hid_neu_init(int i) // функция инициализации i-ого нейрона скрытого слоя
 	{
@@ -159,7 +176,7 @@ public:
 			in_val += Input_Neurons[j].output * Synapses[i + j * num_in_neurons].value;
 		}
 		Hidden_Neurons[i] = Neuron(in_val);
-		cout << "Hidden neuon " << i + 1 << "   " << in_val << endl;
+		//cout << "Hidden neuon " << i + 1 << "   " << in_val << endl;
 	}
 	void out_neu_init(int i) // функция инициализации i-ого нейрона выходного слоя
 	{
@@ -193,7 +210,6 @@ public:
 		{
 			syn_change_val[i] = 0;
 		}
-		Timer t; // создаём счётчик времени
 		double sum_err = num_of_experiments; // изначально сумма всех ошибок максимальная (1 * num_of_experiments)
 		while (sum_err > accuracy /*&& t.elapsed() < 6*/) // Метод ОР ошибки работает пока ошибка больше заданной точности 
 		{
@@ -223,7 +239,7 @@ public:
 			for (int i = 0; i < num_of_syn; ++i) // меняем значения синапсов
 			{
 				Synapses[i].value += syn_change_val[i];
-				cout << "Synapse " << i + 1 << "value: " << Synapses[i].value << endl;
+				//cout << "Synapse " << i + 1 << "value: " << Synapses[i].value << endl;
 			}
 			for (int i = 0; i < num_hid_neurons; ++i)
 			{
@@ -293,5 +309,33 @@ public:
 
 		}
 		cout << "-------------------------------------------------------------------------------------" << endl;
+	}
+	void save_syn() // метод, сохраняющий значения синапсов 
+	{
+		string filename;
+		cout << "Enter filename where synapses values will be saved:" << endl;
+		cin >> filename;
+		filename += ".txt";
+		ofstream fout;
+		fout.open(filename);
+		for (int i = 0; i < num_of_syn; ++i)
+		{
+			fout << Synapses[i].value << endl;
+		}
+		fout.close();
+	}
+	void import_syn(double* val_synapses)// считывает значения синапсов из файла
+	{
+		string filename;
+		cout << "Enter filename with synapses values:" << endl;
+		cin >> filename;
+		filename += ".txt";
+		ifstream file(filename);
+		// надо сделать защиту от меньшего кольчества синапсов в файле
+		for (int i = 0; i < num_of_syn; ++i)
+		{
+			file >> val_synapses[i];
+		}
+		file.close();
 	}
 };
