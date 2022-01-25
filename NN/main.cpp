@@ -8,6 +8,7 @@ int main()
 	string filename; // имя файла
 	cout << "Enter filename:" << endl;
 	cin >> filename; // считываем имя файла
+	filename += ".txt";
 	ifstream file(filename);
 	// Если мы не можем открыть файл для чтения его содержимого, то выводим сообщение об ошибке
 	if (!file)
