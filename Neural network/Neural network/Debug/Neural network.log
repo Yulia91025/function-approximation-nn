@@ -1,8 +1,0 @@
-﻿  main.cpp
-C:\Users\yulia\OneDrive\Рабочий стол\Neural network\Neural network\neural_network.cpp(67,13): warning C4244: return: преобразование "double" в "int", возможна потеря данных
-C:\Users\yulia\OneDrive\Рабочий стол\Neural network\Neural network\main.cpp(75,30): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-C:\Users\yulia\OneDrive\Рабочий стол\Neural network\Neural network\main.cpp(75,26): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-C:\Users\yulia\OneDrive\Рабочий стол\Neural network\Neural network\main.cpp(75,22): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-C:\Users\yulia\OneDrive\Рабочий стол\Neural network\Neural network\main.cpp(75,18): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-  Neural network.vcxproj -> C:\Users\yulia\OneDrive\Рабочий стол\Neural network\Debug\Neural network.exe
-  Скопировано файлов: 0.
