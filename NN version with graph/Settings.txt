@@ -1,0 +1,29 @@
+1.
+Configuration: All Configurations
+Platforms: All Platforms
+
+C/C++ -> Genaral -> Additional Include Directories:
+$(SolutionDir)Libs\freeglut-3.0.0-2\include
+
+Linker -> Input -> Additional Dependencies
+freeglut.lib
+
+2.
+Configuration: All Configurations
+Platforms: Win32
+
+Linker -> General -> Additional Library Directories:
+$(SolutionDir)Libs\freeglut-3.0.0-2\lib\Win32
+
+Build Events -> Post-Build Event
+xcopy /y /d "$(SolutionDir)Libs\freeglut-3.0.0-2\lib\Win32\freeglut.dll" "$(OutDir)"
+
+3.
+Configuration: All Configurations
+Platforms: x64
+
+Linker -> General -> Additional Library Directories:
+$(SolutionDir)Libs\freeglut-3.0.0-2\lib\Win64
+
+Build Events -> Post-Build Event
+xcopy /y /d "$(SolutionDir)Libs\freeglut-3.0.0-2\lib\Win64\freeglut.dll" "$(OutDir)"
